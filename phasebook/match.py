@@ -13,15 +13,13 @@ def match(match_id):
         return "Invalid match id", 404
 
     start = time.time()
-    msg = "Match found" if (is_match(*MATCHES[match_id])) else "No match"
+    msg = "Match found" if is_match(*MATCHES[match_id]) else "No match"
     end = time.time()
 
-    return {"message": msg, "elapsedTime": end - start}, 200
+    return {"message": msg, "elapsedTime": end - start}
 
 
 def is_match(fave_numbers_1, fave_numbers_2):
     set_1 = set(fave_numbers_1)
     set_2 = set(fave_numbers_2)
     return set_2.issubset(set_1)
-
-    return True
