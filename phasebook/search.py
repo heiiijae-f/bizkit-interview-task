@@ -9,56 +9,80 @@ bp = Blueprint("search", __name__, url_prefix="/search")
 
 @bp.route("")
 def search():
-    return search_users(request.args.to_dict()), 200
+    """
+    Searches for users that match the given search parameters.
 
+    Args:
+        query_string (str): The query string from the request.
 
-def search_users():
+    Returns:
+        list: The list of matching users.
+    """
+
     query_string = urlparse(request.url).query
     params = parse_qs(query_string)
 
+    # Get the parameters from the query string.
     id_param = params.get("id")
     name_param = params.get("name")
     age_param = params.get("age")
     occupation_param = params.get("occupation")
 
+    # Initialize the list of filtered users.
     filtered_users = USERS
 
+    # Filter the users by id.
     if id_param:
         user_id = id_param[0]
         filtered_users = [user for user in filtered_users if user["id"] == user_id]
 
+    # Filter the users by name.
     if name_param:
         name = name_param[0].lower()
         filtered_users = [user for user in filtered_users if name in user["name"].lower()]
 
+    # Filter the users by age.
     if age_param:
         age = int(age_param[0])
         filtered_users = [user for user in filtered_users if age - 1 <= user["age"] <= age + 1]
 
+    # Filter the users by occupation.
     if occupation_param:
         occupation = occupation_param[0].lower()
         filtered_users = [user for user in filtered_users if occupation in user["occupation"].lower()]
 
-    return filtered_users
-    
     def compare_users(user1, user2):
-    if user1["id"] in user2["id"]:
-        return -1
-    if user2["id"] in user1["id"]:
-        return 1
-    if user1["name"] in user2["name"]:
-        return -1
-    if user2["name"] in user1["name"]:
-        return 1
-    if abs(user1["age"] - user2["age"]) <= 1:
-        return -1
-    if abs(user2["age"] - user1["age"]) <= 1:
-        return 1
-    if user1["occupation"] in user2["occupation"]:
-        return -1
-    if user2["occupation"] in user1["occupation"]:
-        return 1
-    return 0
+        """
+        Sorts the users by id, name, age, and occupation.
 
-return sorted(filtered_users, key=cmp_to_key(compare_users))
+        Args:
+            user1 (dict): The first user.
+            user2 (dict): The second user.
+
+        Returns:
+            int: The comparison result.
+        """
+
+        # Sort the users by id.
+        return (
+            -1
+            if user1["id"] == user2["id"]
+            else 1
+            if user2["id"] == user1["id"]
+            else (
+                -1
+                if user1["name"] in user2["name"]
+                else 1
+                if user2["name"] in user1["name"]
+                else (
+                    -1
+                    if abs(user1["age"] - user2["age"]) <= 1
+                    else 1
+                    if abs(user2["age"] - user1["age"]) <= 1
+                    else 0
+                )
+            )
+        )
+
+    return sorted(filtered_users, key=cmp_to_key(compare_users))
 
